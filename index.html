@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparatif - LFI &amp; NFP vs RN — par Yugurtha Adel</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f172a;
+      --bg-alt: #111c33;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent-good: #22c55e;
+      --accent-bad: #ef4444;
+      --accent-tab: #38bdf8;
+      --border: rgba(148, 163, 184, 0.25);
+      --font-body: 'Segoe UI', 'Nunito', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: linear-gradient(160deg, #0f172a 10%, #1e293b 60%, #111c33 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 2.5rem 1.25rem 1.5rem;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 auto;
+      max-width: 38rem;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    h1 span {
+      display: inline-block;
+      background: linear-gradient(120deg, #facc15, #fb7185 55%, #22d3ee);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    main {
+      width: min(960px, 94vw);
+      margin: 0 auto 2rem;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .tab-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.5rem;
+      padding: 1rem 1.25rem 0.5rem;
+      background: rgba(15, 25, 45, 0.85);
+    }
+
+    .tab-button {
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 0.75rem 1rem;
+      background: rgba(30, 41, 59, 0.65);
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .tab-button:hover,
+    .tab-button:focus-visible {
+      color: var(--text);
+      border-color: rgba(56, 189, 248, 0.5);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }
+
+    .tab-button.active {
+      color: var(--text);
+      background: linear-gradient(120deg, rgba(56, 189, 248, 0.75), rgba(14, 165, 233, 0.35));
+      border-color: rgba(56, 189, 248, 0.65);
+    }
+
+    .tab-panel {
+      display: none;
+      padding: 0 1.25rem 1.75rem;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 1rem;
+      border: 1px solid var(--border);
+      background: rgba(15, 25, 45, 0.7);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 25, 45, 0.95);
+      backdrop-filter: blur(12px);
+      text-align: left;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      padding: 1rem 1.1rem;
+      z-index: 2;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 0.9rem 1.1rem;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(30, 41, 59, 0.45);
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.2);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.7rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    .tag-good {
+      color: var(--accent-good);
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .tag-bad {
+      color: var(--accent-bad);
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .subject {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        letter-spacing: 0.06em;
+      }
+
+      thead th,
+      tbody td {
+        font-size: 0.85rem;
+        padding: 0.75rem 0.85rem;
+      }
+
+      .tab-controls {
+        padding: 0.75rem;
+      }
+    }
+
+    @media print {
+      body {
+        background: #000 !important;
+        color: #fff;
+      }
+
+      main {
+        box-shadow: none;
+        border: 1px solid #444;
+      }
+
+      .tab-controls {
+        display: none;
+      }
+
+      .tab-panel {
+        display: block !important;
+        page-break-inside: avoid;
+      }
+
+      .table-wrapper {
+        overflow: visible;
+      }
+
+      table {
+        min-width: 100%;
+      }
+
+      thead th {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>Comparatif</span> — LFI &amp; NFP vs RN</h1>
+    <p style="margin-top: 0.75rem; color: var(--muted); font-size: 0.95rem;">
+      Analyse citoyenne par Yugurtha Adel, esprit StarYAM inspiré du Maghreb.
+    </p>
+  </header>
+
+  <main>
+    <nav class="tab-controls" aria-label="Comparatifs politiques">
+      <button class="tab-button active" type="button" data-target="lfi-rn">LFI vs RN</button>
+      <button class="tab-button" type="button" data-target="nfp-rn">NFP vs RN</button>
+    </nav>
+
+    <section id="lfi-rn" class="tab-panel active" aria-labelledby="tab-lfi-rn">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Sujet</th>
+              <th scope="col">Position LFI</th>
+              <th scope="col">Position RN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="subject">Retraite</td>
+              <td><span class="tag tag-good">60 ans</span> Retraite à 60 ans pour tous.</td>
+              <td><span class="tag tag-bad">67 ans</span> Allongement jusqu’à 67 ans envisagé.</td>
+            </tr>
+            <tr>
+              <td class="subject">Salaires</td>
+              <td><span class="tag tag-good">SMIC 1600€ net</span> Hausse généralisée des bas salaires.</td>
+              <td><span class="tag tag-bad">Gel des salaires</span> Baisse d’impôts ciblée sans hausse réelle des salaires.</td>
+            </tr>
+            <tr>
+              <td class="subject">Services publics</td>
+              <td><span class="tag tag-good">Renforcer</span> Services publics de plus en plus forts.</td>
+              <td><span class="tag tag-bad">Réduire</span> Réductions de dépenses publiques.</td>
+            </tr>
+            <tr>
+              <td class="subject">Écologie</td>
+              <td><span class="tag tag-good">Transition verte</span> Plan de transition écologique ambitieux.</td>
+              <td><span class="tag tag-bad">Faible action</span> Peu de mesures écologiques concrètes.</td>
+            </tr>
+            <tr>
+              <td class="subject">Étrangers / musulmans</td>
+              <td><span class="tag tag-good">Égalité</span> Défense de l’égalité et lutte contre les discriminations.</td>
+              <td><span class="tag tag-bad">Durcissement</span> Ligne dure sur immigration et islam.</td>
+            </tr>
+            <tr>
+              <td class="subject">Justice sociale</td>
+              <td><span class="tag tag-good">Taxer fortunes</span> Taxation des grandes fortunes pour redistribuer.</td>
+              <td><span class="tag tag-bad">Favoriser riches</span> Avantages fiscaux pour entreprises et plus aisés.</td>
+            </tr>
+            <tr>
+              <td class="subject">Image du peuple</td>
+              <td><span class="tag tag-good">Défense populaire</span> Défense des travailleurs, jeunes, handicapés, minorités.</td>
+              <td><span class="tag tag-bad">Identité fermée</span> Nationalisme centré sur un peuple unique.</td>
+            </tr>
+            <tr>
+              <td class="subject">Valeurs</td>
+              <td><span class="tag tag-good">Solidarité</span> Valeurs de solidarité, égalité, humanité.</td>
+              <td><span class="tag tag-bad">Exclusion</span> Valeurs perçues d’exclusion et de division.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="nfp-rn" class="tab-panel" aria-labelledby="tab-nfp-rn">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Sujet</th>
+              <th scope="col">Position NFP</th>
+              <th scope="col">Position RN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="subject">Retraite</td>
+              <td><span class="tag tag-good">60 ans</span> Retraite à 60 ans garantie.</td>
+              <td><span class="tag tag-bad">67 ans</span> Extension jusqu’à 67 ans envisagée.</td>
+            </tr>
+            <tr>
+              <td class="subject">Salaires</td>
+              <td><span class="tag tag-good">SMIC 1600€ net</span> Hausse du SMIC et progression salariale.</td>
+              <td><span class="tag tag-bad">Stagnation</span> Baisses d’impôts ciblées sans hausse de salaire.</td>
+            </tr>
+            <tr>
+              <td class="subject">Services publics</td>
+              <td><span class="tag tag-good">Investir</span> Services publics renforcés et modernisés.</td>
+              <td><span class="tag tag-bad">Réduction</span> Baisse des dépenses et privatisations.</td>
+            </tr>
+            <tr>
+              <td class="subject">Écologie</td>
+              <td><span class="tag tag-good">Transition verte</span> Plan climatique et énergétique ambitieux.</td>
+              <td><span class="tag tag-bad">Peu d’actions</span> Politique écologique limitée.</td>
+            </tr>
+            <tr>
+              <td class="subject">Étrangers / musulmans</td>
+              <td><span class="tag tag-good">Égalité</span> Inclusion, respect des minorités et libertés.</td>
+              <td><span class="tag tag-bad">Durcissement</span> Orientation restrictive envers immigration et islam.</td>
+            </tr>
+            <tr>
+              <td class="subject">Justice sociale</td>
+              <td><span class="tag tag-good">Taxer fortunes</span> Contribution des grandes fortunes et partage des richesses.</td>
+              <td><span class="tag tag-bad">Priorité aux entreprises</span> Avantages fiscaux pour entreprises et plus riches.</td>
+            </tr>
+            <tr>
+              <td class="subject">Image du peuple</td>
+              <td><span class="tag tag-good">Peuple pluriel</span> Défense des travailleurs, des jeunes, des minorités.</td>
+              <td><span class="tag tag-bad">Peuple unique</span> Nationalisme identitaire excluant.</td>
+            </tr>
+            <tr>
+              <td class="subject">Valeurs</td>
+              <td><span class="tag tag-good">Solidarité</span> Valeurs de solidarité, égalité et humanité.</td>
+              <td><span class="tag tag-bad">Division</span> Valeurs perçues de division et d’exclusion.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 – par Yugurtha Adel (StarYAM).
+  </footer>
+
+  <script>
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const targetId = button.dataset.target;
+
+        tabButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+        tabPanels.forEach(panel => {
+          panel.classList.toggle('active', panel.id === targetId);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
